@@ -143,10 +143,17 @@ const argParser = new argparse.ArgumentParser({
   description: "Subtitle downloader for opensubtitles.net"
 });
 
-argParser.add_argument("--lang", {
+argParser.add_argument("--lang", "-l", {
   help: "Language to search for",
   dest: "lang",
   default: "eng"
+});
+
+argParser.add_argument("--use-name", "-n", {
+  help: "Search using movie file name instead of movie file hash (more results, but less accurate)",
+  dest: "useName",
+  action: "store_true",
+  default: false
 });
 
 argParser.add_argument("filename", {
@@ -178,9 +185,13 @@ async function search() {
 
   const client = await initClient();
 
+  const searchMethod = args.useName ? "file name" : "file hash";
+  console.log(`Searching for subtitles for ${ params.filename } (using ${ searchMethod })`);
+
   const queryResult = await client.search({
     sublanguageid: args.lang,
-    path: params.filename,
+    path: args.useName ? undefined : params.filename,
+    query: args.useName ? path.basename(params.filename) : undefined,
     limit: "all"
   });
 
