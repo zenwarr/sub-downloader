@@ -1,5 +1,5 @@
 {
-  "name": "sub-downloader",
+  "name": "ossub-downloader",
   "version": "0.1.4",
   "main": "index.js",
   "license": "MIT",
