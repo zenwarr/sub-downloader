@@ -187,6 +187,11 @@ async function search() {
     subs.push(...queryResult[key]);
   }
 
+  if (!subs.length) {
+    console.log("No subtitles found");
+    process.exit(1);
+  }
+
   const result = await prompts([
     {
       type: "select",
