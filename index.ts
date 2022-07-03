@@ -102,6 +102,8 @@ async function selectMovieFileInDir(dir: string): Promise<string> {
   if (movieFiles.length === 0) {
     console.log("No movie files found in directory " + dir);
     process.exit(1);
+  } else if (movieFiles.length === 1) {
+    return path.join(dir, movieFiles[0]);
   }
 
   const result = await prompts([
