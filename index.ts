@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const ost = require("opensubtitles-api");
 import * as fs from "fs";
 import * as os from "os";
