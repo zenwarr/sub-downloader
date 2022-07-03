@@ -1,0 +1,27 @@
+name: Node.js Package
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: install --frozen-lockfile
+
+      - uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: run build
+
+      - uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: publish
+        env:
+          NPM_AUTH_TOKEN: ${{secrets.npm_token}}
+          NPM_REGISTRY_URL: registry.npmjs.org
