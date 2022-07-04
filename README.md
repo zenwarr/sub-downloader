@@ -1,5 +1,10 @@
 Interactive command-line utility to download subtitles from opensubtitles.org.
 
+## Prerequisites
+
+- You need to have an active account on opensubtitles.org, register here: https://www.opensubtitles.org/register/
+- You need node.js and npm installed on your system, any version newer than 16 can be used.
+
 ## Usage
 
 ```shell
