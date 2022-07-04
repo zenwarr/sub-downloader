@@ -18,7 +18,7 @@ npx ossub-downloader --lang=eng video.mp4
 ```
 
 Opensubtitles allows searching subtitles by file hash.
-This method is used by default by ossub-downloader.
+This method is used by default by `ossub-downloader`.
 It gives less results, but it is more accurate.
 But if you want to search by file name only, you can specify `--use-name` (or its shorthand `-n`) flag:
 
@@ -27,3 +27,9 @@ npx ossub-downloader --use-name
 
 npx ossub-downloader -n
 ```
+
+## Authorization
+
+Opensubtitles API requires authorization.
+Upon starting, `ossub-downloader` is going to ask for your username and password.
+You can save them into `~/.ossub-downloader.creds.json` file and not be prompted to type them again but it can be insecure, because this file is not encrypted in any way.

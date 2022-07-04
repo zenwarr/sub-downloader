@@ -10,10 +10,14 @@ import fetch from "node-fetch";
 import argparse from "argparse";
 
 
-interface SavedCreds {
+type CredsFileContent = {
+  shouldAskForSave: false;
+} | Creds;
+
+
+type Creds = {
   username: string;
   passwordHash: string;
-  userAgent: string;
 }
 
 
@@ -22,14 +26,14 @@ interface SavedCreds {
  */
 function getCredsFilePath() {
   const home = os.homedir();
-  return path.join(home, ".sub-downloader.creds.json");
+  return path.join(home, ".ossub-downloader.creds.json");
 }
 
 
 /**
  * Loads saved creds from file
  */
-async function loadSavedCreds(): Promise<SavedCreds | undefined> {
+async function loadSavedCreds(): Promise<CredsFileContent | undefined> {
   const credsFilePath = getCredsFilePath();
   if (!fs.existsSync(credsFilePath)) {
     return undefined;
@@ -42,10 +46,10 @@ async function loadSavedCreds(): Promise<SavedCreds | undefined> {
 /**
  * Loads saved creds from file, or prompts user to enter new creds
  */
-async function loadCreds(): Promise<SavedCreds> {
-  const creds = await loadSavedCreds();
-  if (creds) {
-    return creds;
+async function loadCreds(): Promise<Creds> {
+  const loadedCreds = await loadSavedCreds();
+  if (loadedCreds && "username" in loadedCreds && "passwordHash" in loadedCreds) {
+    return loadedCreds;
   }
 
   const result = await prompts([
@@ -58,30 +62,48 @@ async function loadCreds(): Promise<SavedCreds> {
       type: "password",
       name: "password",
       message: "Password"
-    },
-    {
-      type: "text",
-      name: "userAgent",
-      message: "User agent (https://trac.opensubtitles.org/projects/opensubtitles/wiki/DevReadFirst)"
     }
   ]);
 
-  const credsToSave: SavedCreds = {
+  let shouldSave = false;
+  if (!loadedCreds || ("shouldAskForSave" in loadedCreds && loadedCreds.shouldAskForSave)) {
+    const result = await prompts([
+      {
+        type: "toggle",
+        name: "save",
+        message: `Save credentials in ${ getCredsFilePath() }?`,
+        initial: false,
+        active: "Yes",
+        inactive: "No, and don't ask again"
+      }
+    ]);
+    shouldSave = result.save;
+  }
+
+  const creds: Creds = {
     username: result.username,
-    passwordHash: crypto.createHash("md5").update(result.password).digest("hex"),
-    userAgent: result.userAgent
+    passwordHash: crypto.createHash("md5").update(result.password).digest("hex")
   };
+
+  let credsToSave: CredsFileContent;
+  if (shouldSave) {
+    credsToSave = creds;
+  } else {
+    credsToSave = {
+      shouldAskForSave: false
+    };
+  }
 
   fs.writeFileSync(getCredsFilePath(), JSON.stringify(credsToSave));
 
-  return credsToSave;
+  return creds;
 }
 
 
 async function initClient() {
   const creds = await loadCreds();
   return new ost({
-    useragent: creds.userAgent,
+    useragent: "SMPlayer v22",
     username: creds.username,
     password: creds.passwordHash,
     ssl: true
