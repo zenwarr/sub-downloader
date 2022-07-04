@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import prompts from "prompts";
+import { defaultPromptCancel } from "./prompts.js";
 
 
 /**
@@ -33,7 +34,7 @@ export async function selectVideoFileInDir(dir: string): Promise<string> {
         };
       })
     }
-  ]);
+  ], { onCancel: defaultPromptCancel });
 
   return result.filename;
 }

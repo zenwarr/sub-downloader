@@ -5,6 +5,7 @@ import fetch from "node-fetch";
 import * as path from "path";
 import prompts from "prompts";
 import { args, getWorkContext } from "./src/args.js";
+import { defaultPromptCancel } from "./src/prompts.js";
 import { findSubtitles, Subtitle } from "./src/subs.js";
 
 
@@ -28,7 +29,7 @@ async function search() {
         value: s
       }))
     }
-  ]);
+  ], { onCancel: defaultPromptCancel });
 
   const subToDownload: Subtitle = result.subtitle;
   const res = await fetch(subToDownload.utf8 || subToDownload.url);
@@ -49,7 +50,7 @@ async function search() {
         message: "Output file already exists, enter new name (or confirm to overwrite)",
         initial: outputFilename
       }
-    ]);
+    ], { onCancel: defaultPromptCancel });
     outputFilename = result.outputFilename.includes(".") ? result.outputFilename : result.outputFilename + ".srt";
     outputPath = path.join(params.workingDir, outputFilename);
   }
