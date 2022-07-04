@@ -1,226 +1,16 @@
 #!/usr/bin/env node
 
-const ost = require("opensubtitles-api");
 import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
-import * as crypto from "crypto";
-import prompts from "prompts";
 import fetch from "node-fetch";
-import argparse from "argparse";
-
-
-type CredsFileContent = {
-  shouldAskForSave: false;
-} | Creds;
-
-
-type Creds = {
-  username: string;
-  passwordHash: string;
-}
-
-
-/**
- * Get path to saved creds file
- */
-function getCredsFilePath() {
-  const home = os.homedir();
-  return path.join(home, ".ossub-downloader.creds.json");
-}
-
-
-/**
- * Loads saved creds from file
- */
-async function loadSavedCreds(): Promise<CredsFileContent | undefined> {
-  const credsFilePath = getCredsFilePath();
-  if (!fs.existsSync(credsFilePath)) {
-    return undefined;
-  }
-
-  return JSON.parse(fs.readFileSync(credsFilePath, "utf8"));
-}
-
-
-/**
- * Loads saved creds from file, or prompts user to enter new creds
- */
-async function loadCreds(): Promise<Creds> {
-  const loadedCreds = await loadSavedCreds();
-  if (loadedCreds && "username" in loadedCreds && "passwordHash" in loadedCreds) {
-    return loadedCreds;
-  }
-
-  const result = await prompts([
-    {
-      type: "text",
-      name: "username",
-      message: "Username"
-    },
-    {
-      type: "password",
-      name: "password",
-      message: "Password"
-    }
-  ]);
-
-  let shouldSave = false;
-  if (!loadedCreds || ("shouldAskForSave" in loadedCreds && loadedCreds.shouldAskForSave)) {
-    const result = await prompts([
-      {
-        type: "toggle",
-        name: "save",
-        message: `Save credentials in ${ getCredsFilePath() }?`,
-        initial: false,
-        active: "Yes",
-        inactive: "No, and don't ask again"
-      }
-    ]);
-    shouldSave = result.save;
-  }
-
-  const creds: Creds = {
-    username: result.username,
-    passwordHash: crypto.createHash("md5").update(result.password).digest("hex")
-  };
-
-  let credsToSave: CredsFileContent;
-  if (shouldSave) {
-    credsToSave = creds;
-  } else {
-    credsToSave = {
-      shouldAskForSave: false
-    };
-  }
-
-  fs.writeFileSync(getCredsFilePath(), JSON.stringify(credsToSave));
-
-  return creds;
-}
-
-
-async function initClient() {
-  const creds = await loadCreds();
-  return new ost({
-    useragent: "SMPlayer v22",
-    username: creds.username,
-    password: creds.passwordHash,
-    ssl: true
-  });
-}
-
-
-/**
- * Lists all movie files in current working directory and prompts user to select one
- */
-async function selectMovieFileInDir(dir: string): Promise<string> {
-  const files = fs.readdirSync(dir);
-  const movieFiles = files.filter((file: string) => {
-    const filePath = path.join(dir, file);
-    return fs.statSync(filePath).isFile() && hasMovieExtension(filePath);
-  });
-
-  if (movieFiles.length === 0) {
-    console.log("No movie files found in directory " + dir);
-    process.exit(1);
-  } else if (movieFiles.length === 1) {
-    return path.join(dir, movieFiles[0]);
-  }
-
-  const result = await prompts([
-    {
-      type: "select",
-      name: "filename",
-      instructions: false,
-      message: "Select movie files to download subtitles for",
-      choices: movieFiles.map((file: string) => {
-        return {
-          title: file,
-          value: file
-        };
-      })
-    }
-  ]);
-
-  return result.filename;
-}
-
-
-const VIDEO_FILE_EXTENSIONS = [ ".mp4", ".mkv", ".avi", ".mov" ];
-
-function hasMovieExtension(filename: string): boolean {
-  const ext = path.extname(filename);
-  return VIDEO_FILE_EXTENSIONS.includes(ext);
-}
-
-
-interface Parameters {
-  workingDir: string;
-  filename: string;
-}
-
-
-const argParser = new argparse.ArgumentParser({
-  description: "Subtitle downloader for opensubtitles.net"
-});
-
-argParser.add_argument("--lang", "-l", {
-  help: "Language to search for",
-  dest: "lang",
-  default: "eng"
-});
-
-argParser.add_argument("--use-name", "-n", {
-  help: "Search using movie file name instead of movie file hash (more results, but less accurate)",
-  dest: "useName",
-  action: "store_true",
-  default: false
-});
-
-argParser.add_argument("filename", {
-  help: "Movie file to search for subtitles for",
-  nargs: "?"
-});
-
-const args = argParser.parse_args();
-
-
-async function getParameters(): Promise<Parameters> {
-  if (args.filename) {
-    return {
-      workingDir: path.dirname(args.filename),
-      filename: args.filename
-    };
-  } else {
-    const filename = await selectMovieFileInDir(process.cwd());
-    return {
-      workingDir: path.dirname(filename),
-      filename: filename
-    };
-  }
-}
+import * as path from "path";
+import prompts from "prompts";
+import { args, getWorkContext } from "./src/args.js";
+import { findSubtitles, Subtitle } from "./src/subs.js";
 
 
 async function search() {
-  const params = await getParameters();
-
-  const client = await initClient();
-
-  const searchMethod = args.useName ? "file name" : "file hash";
-  console.log(`Searching for subtitles for ${ params.filename } (using ${ searchMethod })`);
-
-  const queryResult = await client.search({
-    sublanguageid: args.lang,
-    path: args.useName ? undefined : params.filename,
-    query: args.useName ? path.basename(params.filename) : undefined,
-    limit: "all"
-  });
-
-  const subs: any = [];
-  for (const key of Object.keys(queryResult)) {
-    subs.push(...queryResult[key]);
-  }
+  const params = await getWorkContext();
+  const subs = await findSubtitles(params.filename, args.lang, args.useName);
 
   if (!subs.length) {
     console.log("No subtitles found");
@@ -233,14 +23,14 @@ async function search() {
       name: "subtitle",
       instructions: false,
       message: "Select subtitles to download",
-      choices: subs.map((s: any) => ({
+      choices: subs.map(s => ({
         title: `[${ s.langcode }] ${ s.filename } ⇩${ s.downloads }`,
         value: s
       }))
     }
   ]);
 
-  const subToDownload = result.subtitle;
+  const subToDownload: Subtitle = result.subtitle;
   const res = await fetch(subToDownload.utf8 || subToDownload.url);
 
   if (!res.body) {
