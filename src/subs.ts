@@ -1,6 +1,6 @@
 const ost = require("opensubtitles-api");
 import path from "path";
-import { loadCreds } from "./creds.js";
+import { loadCreds } from "./creds";
 
 
 export async function initClient() {

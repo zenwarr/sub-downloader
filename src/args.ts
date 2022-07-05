@@ -1,6 +1,6 @@
 import argparse from "argparse";
 import path from "path";
-import { selectVideoFileInDir } from "./video.js";
+import { selectVideoFileInDir } from "./video";
 
 
 export interface WorkContext {

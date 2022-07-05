@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import prompts from "prompts";
-import { defaultPromptCancel } from "./prompts.js";
+import { defaultPromptCancel } from "./prompts";
 
 
 /**

@@ -4,9 +4,9 @@ import * as fs from "fs";
 import fetch from "node-fetch";
 import * as path from "path";
 import prompts from "prompts";
-import { args, getWorkContext } from "./src/args.js";
-import { defaultPromptCancel } from "./src/prompts.js";
-import { findSubtitles, Subtitle } from "./src/subs.js";
+import { args, getWorkContext } from "./src/args";
+import { defaultPromptCancel } from "./src/prompts";
+import { findSubtitles, Subtitle } from "./src/subs";
 
 
 async function search() {
