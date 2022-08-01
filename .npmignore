@@ -1,3 +1,4 @@
 .idea
 *.ts
 tsconfig.json
+.github
