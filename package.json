@@ -23,6 +23,6 @@
     "prompts": "^2.4.2"
   },
   "bin": {
-    "ossub-downloader": "index.js"
+    "sub-downloader": "index.js"
   }
 }
