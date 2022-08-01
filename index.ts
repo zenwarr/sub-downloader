@@ -18,8 +18,6 @@ async function search() {
     process.exit(1);
   }
 
-  console.log(subs);
-
   const result = await prompts([
     {
       type: "select",
