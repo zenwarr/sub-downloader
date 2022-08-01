@@ -20,6 +20,7 @@ export interface Subtitle {
   downloads: number;
   utf8?: string;
   url: string;
+  score?: number;
 }
 
 

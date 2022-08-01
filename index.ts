@@ -18,6 +18,8 @@ async function search() {
     process.exit(1);
   }
 
+  console.log(subs);
+
   const result = await prompts([
     {
       type: "select",
@@ -25,7 +27,7 @@ async function search() {
       instructions: false,
       message: "Select subtitles to download",
       choices: subs.map(s => ({
-        title: `[${ s.langcode }] ${ s.filename } ⇩${ s.downloads }`,
+        title: `[${ s.langcode }] ${ s.filename } ⇩${ s.downloads } ⭐${ s.score || "?" }`,
         value: s
       }))
     }
