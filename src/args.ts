@@ -26,6 +26,13 @@ argParser.add_argument("--use-name", "-n", {
     default: false
 });
 
+argParser.add_argument("--multi", "-m", {
+    help: "Download multiple subtitles",
+    dest: "multi",
+    action: "store_true",
+    default: false
+})
+
 argParser.add_argument("filename", {
     help: "Movie file to search for subtitles for",
     nargs: "?"

@@ -15,9 +15,10 @@ async function search() {
         process.exit(1);
     }
 
+    const isMultiDownload: boolean = args.multi;
     const result = await prompts([
         {
-            type: "multiselect",
+            type: isMultiDownload ? "multiselect" : "select",
             name: "subtitles",
             instructions: false,
             message: "Select subtitles to download",
@@ -28,7 +29,7 @@ async function search() {
         }
     ], {onCancel: defaultPromptCancel});
 
-    const subsToDownload: Subtitle[] = result.subtitles;
+    const subsToDownload: Subtitle[] = isMultiDownload ? result.subtitles : [ result.subtitles ];
     for (const subToDownload of subsToDownload) {
         await downloadSubtitle({
             async confirmOverwrite(filename: string): Promise<string> {
