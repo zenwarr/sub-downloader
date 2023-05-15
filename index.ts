@@ -17,8 +17,8 @@ async function search() {
 
     const result = await prompts([
         {
-            type: "select",
-            name: "subtitle",
+            type: "multiselect",
+            name: "subtitles",
             instructions: false,
             message: "Select subtitles to download",
             choices: subs.map(s => ({
@@ -28,21 +28,23 @@ async function search() {
         }
     ], {onCancel: defaultPromptCancel});
 
-    const subToDownload: Subtitle = result.subtitle;
-    await downloadSubtitle({
-        async confirmOverwrite(filename: string): Promise<string> {
-            const result = await prompts([
-                {
-                    type: "text",
-                    name: "outputFilename",
-                    message: "Output file already exists, enter new name (or confirm to overwrite)",
-                    initial: filename
-                }
-            ], {onCancel: defaultPromptCancel});
+    const subsToDownload: Subtitle[] = result.subtitles;
+    for (const subToDownload of subsToDownload) {
+        await downloadSubtitle({
+            async confirmOverwrite(filename: string): Promise<string> {
+                const result = await prompts([
+                    {
+                        type: "text",
+                        name: "outputFilename",
+                        message: "Output file already exists, enter new name (or confirm to overwrite)",
+                        initial: filename
+                    }
+                ], {onCancel: defaultPromptCancel});
 
-            return result.outputFilename;
-        }
-    }, subToDownload, subToDownload.langcode);
+                return result.outputFilename;
+            }
+        }, subToDownload, subToDownload.filename);
+    }
 }
 
 
