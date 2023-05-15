@@ -1,3 +1,3 @@
 export function defaultPromptCancel() {
-  process.exit(1);
+    process.exit(1);
 }
