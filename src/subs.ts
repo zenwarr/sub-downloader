@@ -29,7 +29,7 @@ export interface Subtitle {
 }
 
 
-export async function findSubtitles(videoPath: string, lang: string, useName: string): Promise<Subtitle[]> {
+export async function findSubtitles(videoPath: string, lang: string, useName: boolean): Promise<Subtitle[]> {
     const client = await initClient();
 
     const searchMethod = useName ? "file name" : "file hash";

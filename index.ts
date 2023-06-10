@@ -4,6 +4,7 @@ import prompts from "prompts";
 import {args, getWorkContext} from "./src/args";
 import {defaultPromptCancel} from "./src/prompts";
 import {downloadSubtitle, findSubtitles, Subtitle} from "./src/subs";
+import {sync} from "./src/sync";
 
 
 async function search() {
@@ -45,6 +46,10 @@ async function search() {
                 return result.outputFilename;
             }
         }, subToDownload, subToDownload.filename);
+
+        if (args.sync) {
+            sync(params.filename, subToDownload.filename);
+        }
     }
 }
 

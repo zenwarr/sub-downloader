@@ -31,7 +31,14 @@ argParser.add_argument("--multi", "-m", {
     dest: "multi",
     action: "store_true",
     default: false
-})
+});
+
+argParser.add_argument("--sync", "-s", {
+    help: "Automatically sync subtitles to video using alass (alass binary needs to be installed)",
+    dest: "sync",
+    action: "store_true",
+    default: false
+});
 
 argParser.add_argument("filename", {
     help: "Movie file to search for subtitles for",
@@ -39,7 +46,13 @@ argParser.add_argument("filename", {
 });
 
 
-export const args = argParser.parse_args();
+export const args: {
+    lang: string;
+    useName: boolean;
+    multi: boolean;
+    sync: boolean;
+    filename?: string;
+} = argParser.parse_args();
 
 
 export async function getWorkContext(): Promise<WorkContext> {
